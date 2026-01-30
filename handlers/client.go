@@ -18,6 +18,9 @@ func NewClientHandler(service services.ClientService) *ClientHandler {
 }
 
 func (h *ClientHandler) Create(c *gin.Context) {
+	logger.Log.Debug("Request info ", "path", c.Request.URL.Path, "method", c.Request.Method,
+		"content-type", c.GetHeader("Content-Type"),
+		"content-length", c.Request.ContentLength)
 	var request Models.RegisterRequest
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
