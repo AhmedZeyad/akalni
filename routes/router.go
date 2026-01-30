@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/ba7rIbrahim/Akalni/config"
+	"github.com/ba7rIbrahim/Akalni/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,16 +26,23 @@ func InitRouter(conf *config.Config) {
 	}
 	gin.SetMode(mode)
 	engine := gin.New()
+	engine.Use(func(c *gin.Context) {
+		logger.Log.Debug("Request info ", "method", c.Request.Method, "path", c.Request.URL.Path)
+		c.Next()
+	})
 	engine.GET("/kaithheathcheck", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 	group := engine.Group("/api")
+
 	group.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "hello leapcell",
+			"message": "im good ",
 		})
 	})
+
 	RegeserRoutes(group)
+
 	engine.Run("0.0.0.0:" + conf.Port)
 
 }

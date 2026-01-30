@@ -23,16 +23,3 @@ func Init(config *config.Config) {
 	Log = slog.New(handler)
 	slog.SetDefault(Log)
 }
-
-func Error(message string, args ...any) {
-	Log.Error(message, args...)
-}
-func Info(message string, args ...any) {
-	Log.Info(message, args...)
-}
-func Warn(message string, args ...any) {
-	Log.Warn(message, args...)
-}
-func Debug(message string, args ...any) {
-	Log.Debug(message, args...)
-}

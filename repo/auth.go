@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ba7rIbrahim/Akalni/Models"
-	"github.com/ba7rIbrahim/Akalni/logger"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -37,7 +36,6 @@ func (ar *authRepo) Create(context context.Context, client *Models.Client) (err 
 		}
 	}
 
-	logger.Error("the value of id is", "id", client.ID)
 	return err
 }
 

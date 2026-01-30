@@ -66,7 +66,6 @@ func (jwtservice *JTWSevice) GenRefreshToken(id int) (string, error) {
 		log.Printf("error on generate token: %v", err)
 		return "", err
 	}
-	fmt.Println(stringToken)
 	return stringToken, nil
 }
 

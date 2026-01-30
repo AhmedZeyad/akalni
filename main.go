@@ -12,7 +12,7 @@ func main() {
 	conf := config.LoadConfig()
 	db := database.Connect(*conf)
 	logger.Init(conf)
-	logger.Info("server start ", "port", conf.Port)
+	logger.Log.Info("server start ", "port", conf.Port)
 	routes.LoadRoutes(conf, db)
 	routes.InitRouter(conf)
 	// routes.RegeserRoutes()
@@ -22,5 +22,5 @@ func main() {
 
 func onDistroy(conf *config.Config, db *sqlx.DB) {
 	db.Close()
-	logger.Info("server stop ", "port", conf.Port)
+	logger.Log.Info("server stop ", "port", conf.Port)
 }
