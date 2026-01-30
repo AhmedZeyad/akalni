@@ -32,7 +32,7 @@ func InitRouter(conf *config.Config) {
 		})
 	})
 	RegeserRoutes(group)
-	engine.Run(conf.Port)
+	engine.Run("0.0.0.0:" + conf.Port)
 
 }
 func AddAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles []string) {

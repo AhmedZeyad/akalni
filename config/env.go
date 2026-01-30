@@ -31,7 +31,7 @@ func LoadConfig() *Config {
 		slog.Warn("error on load env file", "error", err)
 	}
 	conf := Config{
-		Port:         getEnv("PORT", ":8000"),
+		Port:         getEnv("PORT", "8000"),
 		DBHost:       getEnv("DB_HOST", "localhost"),
 		DBPort:       getEnv("DB_PORT", "3306"),
 		DBUser:       getEnv("DB_USER", "root"),
