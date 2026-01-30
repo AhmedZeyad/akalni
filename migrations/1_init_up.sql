@@ -32,4 +32,3 @@ create emailVerification(
 
 
 commit;
-l

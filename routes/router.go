@@ -26,6 +26,11 @@ func InitRouter(conf *config.Config) {
 	gin.SetMode(mode)
 	engine := gin.New()
 	group := engine.Group("/api")
+	group.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "hello leapcell",
+		})
+	})
 	RegeserRoutes(group)
 	engine.Run(conf.Port)
 
