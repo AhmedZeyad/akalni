@@ -27,7 +27,6 @@ func (ar *authRepo) Create(context context.Context, client *Models.Client) (err 
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		err = rows.Scan(&client.ID)
@@ -35,6 +34,7 @@ func (ar *authRepo) Create(context context.Context, client *Models.Client) (err 
 			return err
 		}
 	}
+	defer rows.Close()
 
 	return err
 }
