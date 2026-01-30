@@ -62,7 +62,7 @@ func LoadConfig() *Config {
 }
 func getEnv(key, defaultValue string) string {
 	val := os.Getenv(key)
-	log.Printf(" the key :%s,and value :%s\n", key, val)
+	// log.Printf(" the key :%s,and value :%s\n", key, val)
 	if len(val) == 0 {
 		log.Printf("warning the value of this key: %s will set to default %v", key, defaultValue)
 		return defaultValue

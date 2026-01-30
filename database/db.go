@@ -10,7 +10,7 @@ import (
 )
 
 func Connect(config config.Config) *sqlx.DB {
-	connectionsString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	connectionsString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
 		config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
 	db, err := sqlx.Connect("pgx", connectionsString)
 	if err != nil {
@@ -20,6 +20,6 @@ func Connect(config config.Config) *sqlx.DB {
 	// if err != nil {
 	// 	log.Println(err)
 	// }
-	log.Println(err)
+	log.Println("db connectedxx")
 	return db
 }
