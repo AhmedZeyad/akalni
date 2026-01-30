@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"strconv"
 
@@ -27,7 +28,7 @@ type Config struct {
 func LoadConfig() *Config {
 	var err error
 	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("error on load env file: %v", err)
+		slog.Warn("error on load env file", "error", err)
 	}
 	conf := Config{
 		Port:         getEnv("PORT", ":8000"),
