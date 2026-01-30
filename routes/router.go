@@ -35,7 +35,7 @@ func InitRouter(conf *config.Config) {
 	})
 	group := engine.Group("/api")
 
-	group.GET("/ping", func(c *gin.Context) {
+	group.HEAD("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "im good ",
 		})
