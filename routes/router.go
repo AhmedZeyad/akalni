@@ -25,6 +25,9 @@ func InitRouter(conf *config.Config) {
 	}
 	gin.SetMode(mode)
 	engine := gin.New()
+	engine.GET("/kaithheathcheck", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 	group := engine.Group("/api")
 	group.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
