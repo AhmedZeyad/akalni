@@ -17,7 +17,9 @@ constraint fk_users_updated_by
 	foreign key (updated_by)
 	references  clients(id)
 	on delete  set null
-	on update cascade
+	on update cascade ,
+
+constraint clients_email_unique unique ("email")
 );
 
 create emailVerification(

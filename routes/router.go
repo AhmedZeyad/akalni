@@ -39,6 +39,7 @@ func InitRouter(conf *config.Config) {
 		c.JSON(200, gin.H{
 			"message": "im good ",
 		})
+
 	})
 
 	RegeserRoutes(group)
