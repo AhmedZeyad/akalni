@@ -48,14 +48,14 @@
 ## 🟦 Phase 2: Authentication & Authorization
 
 ### 🔐 Auth Core
-- [ ] Password hashing (bcrypt)
-- [ ] JWT token generation
-- [ ] JWT token validation
-- [ ] Token expiration handling
+- [x] Password hashing (bcrypt)
+- [x] JWT token generation
+- [x] JWT token validation
+- [] Token expiration handling
 
 ### 📡 Auth Endpoints
-- [ ] `POST /api/v1/auth/register`
-- [ ] `POST /api/v1/auth/login`
+- [x] `POST /api/v1/auth/register`
+- [x] `POST /api/v1/auth/login`
 - [ ] `GET /api/v1/auth/me`
 - [ ] `POST /api/v1/auth/logout` (optional)
 

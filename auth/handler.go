@@ -7,15 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ClientHandler struct {
-	service ClientService
+type AuthHandler struct {
+	service AuthService
 }
 
-func NewClientHandler(service ClientService) *ClientHandler {
-	return &ClientHandler{service: service}
+func NewAuthHandler(service AuthService) *AuthHandler {
+	return &AuthHandler{service: service}
 }
 
-func (h *ClientHandler) Create(c *gin.Context) {
+func (h *AuthHandler) Create(c *gin.Context) {
 	logger.Log.Debug("Request info ", "path", c.Request.URL.Path, "method", c.Request.Method,
 		"content-type", c.GetHeader("Content-Type"),
 		"content-length", c.Request.ContentLength)
@@ -35,7 +35,7 @@ func (h *ClientHandler) Create(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"message": "User registered successfully", "data": res})
 }
-func (h *ClientHandler) Login(c *gin.Context) {
+func (h *AuthHandler) Login(c *gin.Context) {
 	var request LoginRequest
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
@@ -50,4 +50,16 @@ func (h *ClientHandler) Login(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"message": "User logged in successfully", "data": client})
+}
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	Bearer := "Bearer "
+	authHeader := c.GetHeader("Authorization")
+	strToken := authHeader[len(Bearer):]
+	res, err := h.service.Refresh(context.Background(), strToken)
+	if err != nil {
+		logger.Log.Error("refresh erro", "error", err)
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "User refreshed successfully", "data": res})
 }

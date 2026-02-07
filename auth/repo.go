@@ -15,6 +15,7 @@ import (
 type AuthRepo interface {
 	Create(context context.Context, client *Client) (err error)
 	GetByEmail(context context.Context, email string) (client Client, err error)
+	GetByID(context context.Context, id int) (client Client, err error)
 }
 type authRepo struct {
 	db *sqlx.DB
@@ -62,6 +63,7 @@ func (ar *authRepo) GetByEmail(context context.Context, email string) (client Cl
 	err = ar.db.Get(&client,
 		`
 	select
+		id,
 		first_name,
 		last_name,
 		phone_number,
@@ -82,6 +84,29 @@ func (ar *authRepo) GetByEmail(context context.Context, email string) (client Cl
 }
 
 // TODO : GET CLIENT BY ID
-//
+func (ar *authRepo) GetByID(context context.Context, id int) (client Client, err error) {
+	err = ar.db.Get(&client,
+		`
+	select
+		id,
+		first_name,
+		last_name,
+		phone_number,
+		email,
+		is_email_verified,
+		email_verified_at,
+		password
+	from  clients
+	where id=$1
+		`, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return client, errors.New(customeErrors.AUTH_USER_NOT_FOUND)
+		}
+		return
+	}
+	return
+}
+
 // TODO : UPDATE CLIENT LOW PRIO
 // TODO : DELETE CLIENT LOW PRIO

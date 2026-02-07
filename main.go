@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ba7rIbrahim/Akalni/auth"
 	"github.com/ba7rIbrahim/Akalni/config"
 	"github.com/ba7rIbrahim/Akalni/database"
 	"github.com/ba7rIbrahim/Akalni/logger"
@@ -13,8 +14,10 @@ func main() {
 	db := database.Connect(*conf)
 	logger.Init(conf)
 	logger.Log.Info("server start ", "port", conf.Port)
-	routes.LoadRoutes(conf, db)
-	routes.InitRouter(conf)
+	jwtService := auth.NewJWTService(conf.JWTExpire, conf.RefreshJWTExpire, conf.JWTSecret)
+
+	routes.LoadRoutes(conf, db, jwtService)
+	routes.InitRouter(conf, jwtService)
 	// routes.RegeserRoutes()
 	defer onDistroy(conf, db)
 
