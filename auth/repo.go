@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/ba7rIbrahim/Akalni/customeErrors"
+	customErrors "github.com/AhmedZeyad/Akalni/customErrors"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -38,7 +38,7 @@ func (ar *authRepo) Create(context context.Context, client *Client) (err error) 
 		}
 		if strings.Contains(err.Error(), "23505") && strings.Contains(err.Error(), "email_unique") {
 
-			return errors.New(customeErrors.VALIDATION_EMAIL_DUPLICATE)
+			return errors.New(customErrors.VALIDATION_EMAIL_DUPLICATE)
 		}
 
 		slog.Error("feild to add client", "error", err)
@@ -75,10 +75,15 @@ func (ar *authRepo) GetByEmail(context context.Context, email string) (client Cl
 	where email=$1
 		`, email)
 	if err != nil {
+		// TODO return error
 		if err == sql.ErrNoRows {
-			return client, errors.New(customeErrors.AUTH_USER_NOT_FOUND)
+
+			return client, errors.New(customErrors.AUTH_USER_NOT_FOUND)
 		}
 		return
+	}
+	if client.EmailVerifiedAt == nil {
+		return Client{}, errors.New(customErrors.AUTH_EMAIL_NOT_VERIFIED)
 	}
 	return
 }
@@ -101,11 +106,17 @@ func (ar *authRepo) GetByID(context context.Context, id int) (client Client, err
 		`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return client, errors.New(customeErrors.AUTH_USER_NOT_FOUND)
+			return client, errors.New(customErrors.AUTH_USER_NOT_FOUND)
 		}
 		return
 	}
 	return
+}
+func (client *Client) CheckUserType() string {
+	if client.EmailVerifiedAt == nil {
+		return USER_TYPE_EMAIL_NOT_VERIFIED
+	}
+	return USER_TYPE_REGISTERED
 }
 
 // TODO : UPDATE CLIENT LOW PRIO

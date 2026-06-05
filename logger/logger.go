@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/ba7rIbrahim/Akalni/config"
+	"github.com/AhmedZeyad/Akalni/config"
 )
 
 var Log *slog.Logger

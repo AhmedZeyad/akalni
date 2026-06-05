@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ba7rIbrahim/Akalni/auth"
-	"github.com/ba7rIbrahim/Akalni/config"
-	"github.com/ba7rIbrahim/Akalni/logger"
+	"github.com/AhmedZeyad/Akalni/auth"
+	"github.com/AhmedZeyad/Akalni/config"
+	"github.com/AhmedZeyad/Akalni/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +18,8 @@ type Routes struct {
 	Roles   []string
 }
 
-var routes = []Routes{}
+var clientRoutes = []Routes{}
+var adminRoutes = []Routes{}
 
 func InitRouter(conf *config.Config, jwtService *auth.JTWSevice) {
 	// engin:=
@@ -37,28 +38,35 @@ func InitRouter(conf *config.Config, jwtService *auth.JTWSevice) {
 	engine.GET("/kaithheathcheck", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
-	group := engine.Group("/api")
+	clientGroup := engine.Group("/api")
+	AdminGroup := engine.Group("/api")
 
-	group.HEAD("/ping", func(c *gin.Context) {
+	clientGroup.HEAD("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "im good ",
 		})
 
 	})
 
-	RegeserRoutes(group, jwtService)
-
+	RegisterAdminRoutes(AdminGroup, jwtService)
+	RegisterClientRoutes(clientGroup, jwtService)
 	engine.Run("0.0.0.0:" + conf.Port)
 
 }
+func AddAdminRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
+	clientRoutes = append(clientRoutes, Routes{Method, path, handler, true, Roles})
+}
+func AddAdminNonAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
+	clientRoutes = append(clientRoutes, Routes{Method, path, handler, false, Roles})
+}
 func AddAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
-	routes = append(routes, Routes{Method, path, handler, true, Roles})
+	clientRoutes = append(clientRoutes, Routes{Method, path, handler, true, Roles})
 }
 func AddNonAuthRoutes(Method, path string, handler gin.HandlerFunc) {
-	routes = append(routes, Routes{Method, path, handler, false, nil})
+	clientRoutes = append(clientRoutes, Routes{Method, path, handler, false, nil})
 }
-func RegeserRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
-	for _, route := range routes {
+func RegisterClientRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
+	for _, route := range clientRoutes {
 		// TODO: Implement route registration logic
 		// TODO: add middleware
 		if route.Auth {
@@ -70,6 +78,15 @@ func RegeserRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
 		}
 	}
 
+}
+func RegisterAdminRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
+	for _, route := range adminRoutes {
+		if route.Auth {
+			engine.Handle(route.Method, route.Path, JWTMiddleware(jwtService), route.Handler)
+		} else {
+			engine.Handle(route.Method, route.Path, route.Handler)
+		}
+	}
 }
 
 // todo implement jwt middleware

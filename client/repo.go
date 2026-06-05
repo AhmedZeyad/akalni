@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/ba7rIbrahim/Akalni/customeErrors"
+	customErrors "github.com/AhmedZeyad/Akalni/customErrors"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -24,7 +24,7 @@ func (r *clientRepo) GetByID(id int) (client Client, err error) {
 
 	err = r.db.Get(&client, `
 		select
-	
+
 			first_name,
 			last_name,
 			email
@@ -34,7 +34,7 @@ func (r *clientRepo) GetByID(id int) (client Client, err error) {
 		`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return client, errors.New(customeErrors.AUTH_USER_NOT_FOUND)
+			return client, errors.New(customErrors.AUTH_USER_NOT_FOUND)
 		}
 		return client, err
 	}

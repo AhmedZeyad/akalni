@@ -47,3 +47,17 @@ type LoginRequest struct {
 type RefreshTokenRes struct {
 	Token string `json:"token"`
 }
+type RegisterReq struct {
+	Stoken string `json:"stoke"`
+	Email  string `json:"email"`
+}
+type RegisterRes struct {
+	UserType string `json:"user_type"`
+}
+
+const (
+	USER_TYPE_REGISTERED         = "REGISTERED"
+	USER_TYPE_EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED"
+	USER_TYPE_NOT_REGISTERED     = "NOT_REGISTERED"
+	USER_TYPE_BLOCKED            = "BLOCKED"
+)

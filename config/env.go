@@ -23,6 +23,8 @@ type Config struct {
 	refJWTExpier     string
 	ISDev            string
 	ISLocal          string
+	OtpAppPassword   string
+	OtpEmailSender   string
 }
 
 func LoadConfig() *Config {
@@ -31,17 +33,19 @@ func LoadConfig() *Config {
 		slog.Warn("error on load env file", "error", err)
 	}
 	conf := Config{
-		Port:         getEnv("PORT", "8000"),
-		DBHost:       getEnv("DB_HOST", "localhost"),
-		DBPort:       getEnv("DB_PORT", "3306"),
-		DBUser:       getEnv("DB_USER", "root"),
-		DBPassword:   getEnv("DB_PASSWORD", "password"),
-		DBName:       getEnv("DB_NAME", "mydb"),
-		JWTSecret:    getEnv("JWT_SECRET", "secret"),
-		jwtExpire:    getEnv("JWT_EXPIRE", "1"),
-		refJWTExpier: getEnv("REF_JWT_EXPIER", "24"),
-		ISDev:        getEnv("IS_DEV", "false"),
-		ISLocal:      getEnv("IS_LOCAL", "false"),
+		Port:           getEnv("PORT", "8000"),
+		DBHost:         getEnv("DB_HOST", "localhost"),
+		DBPort:         getEnv("DB_PORT", "5432"),
+		DBUser:         getEnv("DB_USER", "ahmed"),
+		DBPassword:     getEnv("DB_PASSWORD", "admin"),
+		DBName:         getEnv("DB_NAME", "akalni"),
+		JWTSecret:      getEnv("JWT_SECRET", "secret"),
+		jwtExpire:      getEnv("JWT_EXPIRE", "1"),
+		refJWTExpier:   getEnv("REF_JWT_EXPIER", "24"),
+		ISDev:          getEnv("IS_DEV", "false"),
+		ISLocal:        getEnv("IS_LOCAL", "false"),
+		OtpAppPassword: getEnv("GMAIL_APP_PASSWORD", ""),
+		OtpEmailSender: getEnv("OTP_EMAIL_SENDER", ""),
 	}
 	if conf.jwtExpire != "" {
 		conf.JWTExpire, err = strconv.Atoi(conf.jwtExpire)

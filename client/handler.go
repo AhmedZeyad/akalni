@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ba7rIbrahim/Akalni/auth"
+	"github.com/AhmedZeyad/Akalni/auth"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,9 +1,11 @@
 package routes
 
 import (
-	"github.com/ba7rIbrahim/Akalni/auth"
-	"github.com/ba7rIbrahim/Akalni/client"
-	"github.com/ba7rIbrahim/Akalni/config"
+	"github.com/AhmedZeyad/Akalni/auth"
+	"github.com/AhmedZeyad/Akalni/client"
+	"github.com/AhmedZeyad/Akalni/config"
+	"github.com/AhmedZeyad/Akalni/middleware"
+	"github.com/AhmedZeyad/Akalni/users"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,9 +18,24 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *auth.JTWSevice) {
 	AddNonAuthRoutes("POST", "/singup", authHandler.Create)
 	AddNonAuthRoutes("POST", "/login", authHandler.Login)
 	AddNonAuthRoutes("POST", "/Refresh", authHandler.Refresh)
+	AddNonAuthRoutes("POST", "/clients", authHandler.Create)
 	clientRepo := client.NewClientRepo(db)
 	clientService := client.NewClientService(clientRepo)
 	clientHandler := client.NewClientHandler(*clientService)
 	AddAuthRoutes("GET", "/profile", clientHandler.GetProfile)
 
+	//INFO Admin routes
+	adminjwt := middleware.NewJwtService(
+		conf.JWTExpire,
+		conf.RefreshJWTExpire,
+		conf.JWTSecret,
+	)
+	userRepo := users.NewUserRepo(db)
+	userService := users.NewUserService(userRepo)
+	userHandler := users.NewUserHandler(*userService, adminjwt)
+	AddAdminNonAuthRoutes("POST", "/users", userHandler.CreateUser)
+	AddAdminNonAuthRoutes("POST", "/users/login", userHandler.Login)
+
+	// users.InitUserRoutes(db)
+	// AddAdminNonAuthRoutes("POST", "/signup")
 }
