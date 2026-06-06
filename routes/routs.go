@@ -5,6 +5,7 @@ import (
 	"github.com/AhmedZeyad/Akalni/client"
 	"github.com/AhmedZeyad/Akalni/config"
 	"github.com/AhmedZeyad/Akalni/middleware"
+	"github.com/AhmedZeyad/Akalni/order"
 	"github.com/AhmedZeyad/Akalni/users"
 	"github.com/jmoiron/sqlx"
 )
@@ -35,7 +36,14 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *auth.JTWSevice) {
 	userHandler := users.NewUserHandler(*userService, adminjwt)
 	AddAdminNonAuthRoutes("POST", "/users", userHandler.CreateUser)
 	AddAdminNonAuthRoutes("POST", "/users/login", userHandler.Login)
-
+	AddAdminNonAuthRoutes("POST", "/users/reset-password", userHandler.ResetPassword)
 	// users.InitUserRoutes(db)
 	// AddAdminNonAuthRoutes("POST", "/signup")
+	// INFO orders LoadRoutes
+	orderRepo := order.NewOrderRepo(db)
+	orderService := order.NewOrderService(orderRepo)
+	orderHandler := order.NewOrderHandler(orderService)
+	// TODO:fix token check and make it auth routes
+	AddAdminNonAuthRoutes("GET", "/orders", orderHandler.GetOrder)
+	AddAdminNonAuthRoutes("PUT", "/orders/status", orderHandler.UpdateOrderStatus)
 }

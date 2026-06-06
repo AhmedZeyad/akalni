@@ -61,3 +61,22 @@ type UserResponse struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+type ResetPasswordRequest struct {
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
+}
+
+func (r *ResetPasswordRequest) Validate() error {
+	if utils.IsEmpty(r.Email) {
+		return errors.New(customErrors.VALIDATION_EMAIL_REQUIRED)
+	}
+	if utils.IsEmpty(r.NewPassword) {
+		return errors.New(customErrors.VALIDATION_CONFIRM_PASSWORD_REQUIRED)
+	}
+	if len(r.NewPassword) < 8 {
+		return errors.New(customErrors.VALIDATION_PASSWORD_TOO_SHORT)
+	}
+	return nil
+}

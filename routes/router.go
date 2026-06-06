@@ -54,10 +54,10 @@ func InitRouter(conf *config.Config, jwtService *auth.JTWSevice) {
 
 }
 func AddAdminRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
-	clientRoutes = append(clientRoutes, Routes{Method, path, handler, true, Roles})
+	adminRoutes = append(adminRoutes, Routes{Method, path, handler, true, Roles})
 }
 func AddAdminNonAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
-	clientRoutes = append(clientRoutes, Routes{Method, path, handler, false, Roles})
+	adminRoutes = append(adminRoutes, Routes{Method, path, handler, false, Roles})
 }
 func AddAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string) {
 	clientRoutes = append(clientRoutes, Routes{Method, path, handler, true, Roles})

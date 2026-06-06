@@ -124,8 +124,3 @@ func (u *userRepo) GetPasswordByEmail(email string) (string, error) {
 	}
 	return password, nil
 }
-
-// TODO implemt generic insert func and use it on CRUD
-// func Insert(table string, data interface{}) error {
-
-// }

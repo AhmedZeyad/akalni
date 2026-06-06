@@ -69,3 +69,26 @@ func (uh *UserHandler) Login(ctx *gin.Context) {
 
 	shared.Respond(ctx, user.ToUserResponse(token, refreshToken), nil)
 }
+func (uh *UserHandler) ResetPassword(ctx *gin.Context) {
+	appError := &shared.AppError{Layer: "Handler"}
+	var resetPasswordRequest ResetPasswordRequest
+	appError.Error = ctx.ShouldBindJSON(&resetPasswordRequest)
+	if appError.Error != nil {
+		slog.Error("failed to bind json", "error", appError.Error)
+		shared.Respond(ctx, nil, appError)
+		return
+	}
+	appError.Error = resetPasswordRequest.Validate()
+	if appError.Error != nil {
+		slog.Error("failed to validate", "error", appError.Error)
+		shared.Respond(ctx, nil, appError)
+		return
+	}
+	appError.Error = uh.service.ResetPassword(resetPasswordRequest)
+	if appError.Error != nil {
+		slog.Error("failed to reset password", "error", appError.Error)
+		shared.Respond(ctx, nil, appError)
+		return
+	}
+	shared.Respond(ctx, nil, nil)
+}

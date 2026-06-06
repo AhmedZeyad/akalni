@@ -59,9 +59,30 @@ func (us *UserService) Login(user UserFromRequest) (*User, error) {
 	return userInfo, nil
 }
 
-// func (us *UserService) User() error {
-// 	return nil
-// }
+func (us *UserService) ResetPassword(user ResetPasswordRequest) error {
+	pass, err := us.User.GetPasswordByEmail(user.Email)
+	if err != nil {
+		slog.Error("failed to get password by email", "error", err)
+		return err
+	}
+	// TODO implement send email otp
+	err = utils.ComparePass(user.Password, pass)
+	if err != nil {
+		slog.Error("failed to compare password", "error", err)
+		return err
+	}
+	user.NewPassword, err = utils.PassHash(user.NewPassword)
+	if err != nil {
+		slog.Error("failed to hash new password", "error", err)
+		return err
+	}
+	err = us.User.ResetPassword(user.Email, user.NewPassword, 0)
+	if err != nil {
+		slog.Error("failed to reset password", "error", err)
+		return err
+	}
+	return nil
+}
 
 //	func (us *UserService) User() error {
 //		return nil
