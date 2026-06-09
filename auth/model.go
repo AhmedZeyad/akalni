@@ -3,7 +3,7 @@ package auth
 import "time"
 
 type Client struct {
-	ID              int        `db:"id" json:"id"`
+	ID              int64      `db:"id" json:"id"`
 	FirstName       string     `db:"first_name" json:"first_name"`
 	LastName        string     `db:"last_name" json:"last_name"`
 	Email           string     `db:"email" json:"email"`
@@ -19,7 +19,7 @@ type Client struct {
 	DeletedBy       int        `db:"deleted_by" json:"-"`
 }
 type ClientReqponse struct {
-	ID              int       `db:"id" json:"id"`
+	ID              int64     `db:"id" json:"id"`
 	FirstName       string    `db:"first_name" json:"first_name"`
 	LastName        string    `db:"last_name" json:"last_name"`
 	Email           string    `db:"email" json:"email"`

@@ -6,7 +6,7 @@ TODO
 ## Admin Routes
 - [x] signup
 - [x]  login
-- [ ] reset password
-- [ ] get orders info
-- [ ] update order status
+- [x] reset password
+- [x] get orders info
+- [x] update order status
 - [ ] restaurant CRUD

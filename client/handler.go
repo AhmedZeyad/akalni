@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/AhmedZeyad/Akalni/auth"
+	"github.com/AhmedZeyad/Akalni/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +24,7 @@ func (h ClientHandler) GetProfile(ctx *gin.Context) {
 		return
 	}
 	slog.Error("error on get profile", "error", "client not found", "value", value)
-	claims := value.(auth.Claims)
+	claims := value.(middleware.ClientClaims)
 
 	client, err := h.service.GetProfile(claims.ClientID)
 	if err != nil {

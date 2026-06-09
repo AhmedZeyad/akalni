@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/AhmedZeyad/Akalni/auth"
 	"github.com/AhmedZeyad/Akalni/config"
 	"github.com/AhmedZeyad/Akalni/logger"
+	"github.com/AhmedZeyad/Akalni/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +21,7 @@ type Routes struct {
 var clientRoutes = []Routes{}
 var adminRoutes = []Routes{}
 
-func InitRouter(conf *config.Config, jwtService *auth.JTWSevice) {
+func InitRouter(conf *config.Config, jwtService *middleware.JWTService) {
 	// engin:=
 	var mode string
 	if conf.ISDev == "true" && conf.ISLocal == "true" {
@@ -65,12 +65,12 @@ func AddAuthRoutes(Method, path string, handler gin.HandlerFunc, Roles ...string
 func AddNonAuthRoutes(Method, path string, handler gin.HandlerFunc) {
 	clientRoutes = append(clientRoutes, Routes{Method, path, handler, false, nil})
 }
-func RegisterClientRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
+func RegisterClientRoutes(engine *gin.RouterGroup, jwtService *middleware.JWTService) {
 	for _, route := range clientRoutes {
 		// TODO: Implement route registration logic
 		// TODO: add middleware
 		if route.Auth {
-			engine.Handle(route.Method, route.Path, JWTMiddleware(jwtService), route.Handler)
+			engine.Handle(route.Method, route.Path, ClientJWTMiddleware(jwtService), route.Handler)
 
 		} else {
 
@@ -79,10 +79,10 @@ func RegisterClientRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
 	}
 
 }
-func RegisterAdminRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
+func RegisterAdminRoutes(engine *gin.RouterGroup, jwtService *middleware.JWTService) {
 	for _, route := range adminRoutes {
 		if route.Auth {
-			engine.Handle(route.Method, route.Path, JWTMiddleware(jwtService), route.Handler)
+			engine.Handle(route.Method, route.Path, UserJWTMiddleware(jwtService), route.Handler)
 		} else {
 			engine.Handle(route.Method, route.Path, route.Handler)
 		}
@@ -90,12 +90,30 @@ func RegisterAdminRoutes(engine *gin.RouterGroup, jwtService *auth.JTWSevice) {
 }
 
 // todo implement jwt middleware
-func JWTMiddleware(jwtService *auth.JTWSevice) gin.HandlerFunc {
+func UserJWTMiddleware(jwtService *middleware.JWTService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// get token
 		token := ctx.Request.Header.Get("Authorization")
 
-		claims, err := jwtService.TokenVerify(token)
+		claims, err := jwtService.UserTokenEvaluation(token, middleware.EvalToken)
+		if err != nil {
+			slog.Error("error on verify token", "error", err)
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.Set("client", claims)
+		ctx.Next()
+		// TokenVerify
+		// next or abort
+	}
+
+}
+func ClientJWTMiddleware(jwtService *middleware.JWTService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// get token
+		token := ctx.Request.Header.Get("Authorization")
+
+		claims, err := jwtService.ClientTokenEvaluation(token, middleware.EvalToken)
 		if err != nil {
 			slog.Error("error on verify token", "error", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

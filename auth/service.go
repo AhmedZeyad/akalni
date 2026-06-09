@@ -11,15 +11,16 @@ import (
 	recaptcha "cloud.google.com/go/recaptchaenterprise/v2/apiv1"
 	recaptchapb "cloud.google.com/go/recaptchaenterprise/v2/apiv1/recaptchaenterprisepb"
 	customErrors "github.com/AhmedZeyad/Akalni/customErrors"
+	"github.com/AhmedZeyad/Akalni/middleware"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	client     AuthRepo
-	jwtService *JTWSevice
+	jwtService *middleware.JWTService
 }
 
-func NewAuthService(client AuthRepo, jwtService *JTWSevice) *AuthService {
+func NewAuthService(client AuthRepo, jwtService *middleware.JWTService) *AuthService {
 	return &AuthService{
 		client:     client,
 		jwtService: jwtService,
@@ -72,11 +73,20 @@ func (cs *AuthService) CreateUser(ctx context.Context, clientrequest *RegisterRe
 		Email:       client.Email,
 	}
 	// Todo gen token
-	res.Token, err = cs.jwtService.TokenGenrate(*client)
+	res.Token, err = cs.jwtService.ClientGenToken(middleware.User{
+		ID:              client.ID,
+		Name:            client.FirstName + " " + client.LastName,
+		Email:           client.Email,
+		IsEmailVerified: client.IsEmailVerified,
+	})
 	if err != nil {
 		return RegisterRespons{}, err
 	}
-	res.RefreshToken, err = cs.jwtService.GenRefreshToken(client.ID)
+	res.RefreshToken, err = cs.jwtService.ClientGenRefreshToken(middleware.User{
+		ID:              client.ID,
+		Email:           client.Email,
+		IsEmailVerified: client.IsEmailVerified,
+	})
 	if err != nil {
 		return RegisterRespons{}, err
 	}
@@ -113,11 +123,21 @@ func (cs *AuthService) Login(ctx context.Context, req *LoginRequest) (res Regist
 			Email:       client.Email,
 		}
 	// Todo gen token
-	res.Token, err = cs.jwtService.TokenGenrate(client)
+	res.Token, err = cs.jwtService.ClientGenToken(middleware.User{
+		ID:              client.ID,
+		Name:            client.FirstName + " " + client.LastName,
+		Email:           client.Email,
+		IsEmailVerified: client.IsEmailVerified,
+	})
 	if err != nil {
 		return RegisterRespons{}, err
 	}
-	res.RefreshToken, err = cs.jwtService.GenRefreshToken(client.ID)
+	res.RefreshToken, err = cs.jwtService.ClientGenRefreshToken(middleware.User{
+		ID:              client.ID,
+		Name:            client.FirstName + " " + client.LastName,
+		Email:           client.Email,
+		IsEmailVerified: client.IsEmailVerified,
+	})
 	if err != nil {
 		return RegisterRespons{}, err
 	}
@@ -126,7 +146,7 @@ func (cs *AuthService) Login(ctx context.Context, req *LoginRequest) (res Regist
 }
 func (cs *AuthService) Refresh(ctx context.Context, token string) (res RefreshTokenRes, err error) {
 
-	cliams, err := cs.jwtService.RefreshTokenVerify(token)
+	cliams, err := cs.jwtService.UserTokenEvaluation(token, middleware.EvalRefreshToken)
 	if err != nil {
 		slog.Error("failed to verify refresh token", "error", err)
 		return res, err
@@ -142,7 +162,12 @@ func (cs *AuthService) Refresh(ctx context.Context, token string) (res RefreshTo
 		return res, err
 	}
 	// Todo gen token
-	res.Token, err = cs.jwtService.TokenGenrate(client)
+	res.Token, err = cs.jwtService.ClientGenToken(middleware.User{
+		ID:              client.ID,
+		Name:            client.FirstName + " " + client.LastName,
+		Email:           client.Email,
+		IsEmailVerified: client.IsEmailVerified,
+	})
 	if err != nil {
 		slog.Error("failed to generate token", "error", err)
 		return

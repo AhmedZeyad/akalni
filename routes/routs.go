@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *auth.JTWSevice) {
+func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *middleware.JWTService) {
 	// Load routes here
 
 	authRepo := auth.NewAuthRepo(db)
@@ -26,14 +26,10 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *auth.JTWSevice) {
 	AddAuthRoutes("GET", "/profile", clientHandler.GetProfile)
 
 	//INFO Admin routes
-	adminjwt := middleware.NewJwtService(
-		conf.JWTExpire,
-		conf.RefreshJWTExpire,
-		conf.JWTSecret,
-	)
+
 	userRepo := users.NewUserRepo(db)
 	userService := users.NewUserService(userRepo)
-	userHandler := users.NewUserHandler(*userService, adminjwt)
+	userHandler := users.NewUserHandler(*userService, jwtService)
 	AddAdminNonAuthRoutes("POST", "/users", userHandler.CreateUser)
 	AddAdminNonAuthRoutes("POST", "/users/login", userHandler.Login)
 	AddAdminNonAuthRoutes("POST", "/users/reset-password", userHandler.ResetPassword)

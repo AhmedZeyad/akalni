@@ -64,9 +64,10 @@ type JWTService struct {
 
 // admin
 type User struct {
-	ID    int64  `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID              int64  `json:"id"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	IsEmailVerified bool   `json:"is_email_verified"`
 }
 type Claims interface {
 	jwt.Claims
@@ -78,3 +79,50 @@ const (
 	EvalToken        EvalClaimsType = "Token"
 	EvalRefreshToken EvalClaimsType = "RefreshToken"
 )
+
+type ClientClaims struct {
+	ClientID        int64  `json:"client_id"`
+	Email           string `json:"email"`
+	Name            string `json:"name"`
+	IsEmailVerified bool   `json:"is_email_verified"`
+	jwt.RegisteredClaims
+}
+
+func (client *ClientClaims) ClaimsEval(evalType EvalClaimsType) error {
+	switch evalType {
+	case EvalToken:
+		if utils.IsEmpty(client.Subject) || client.Subject != "ClientApp" {
+			slog.Error("client subject is not set or invalid", "subject", client.Subject)
+			return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+		}
+
+	case EvalRefreshToken:
+		if utils.IsEmpty(client.Subject) || client.Subject != "Refresh" {
+			slog.Error("client subject is not set or invalid", "subject", client.Subject)
+			return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+		}
+
+	}
+	if utils.IsEmpty(client.ExpiresAt) || client.ExpiresAt.Before(time.Now()) {
+		slog.Error("client token is expired")
+		return errors.New(customErrors.AUTH_TOKEN_EXPIRED)
+	}
+	if utils.IsEmpty(client.ID) {
+		slog.Error("client id is not set", "id", client.ID)
+		return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+	}
+	if utils.IsEmpty(client.Email) {
+		slog.Error("client email is not set", "email", client.Email)
+		return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+	}
+	if utils.IsEmpty(client.Issuer) || client.Issuer != "Akalni" {
+		slog.Error("client issuer is not set or invalid", "issuer", client.Issuer)
+		return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+	}
+
+	if utils.IsEmpty(client.Audience...) || !slices.Contains(client.Audience, "client") {
+		slog.Error("client audience is not set or invalid", "audience", client.Audience)
+		return errors.New(customErrors.AUTH_INVALID_CREDENTIALS)
+	}
+	return nil
+}
