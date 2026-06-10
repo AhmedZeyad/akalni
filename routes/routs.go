@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/AhmedZeyad/Akalni/auth"
 	"github.com/AhmedZeyad/Akalni/client"
 	"github.com/AhmedZeyad/Akalni/config"
 	"github.com/AhmedZeyad/Akalni/middleware"
@@ -13,16 +12,13 @@ import (
 func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *middleware.JWTService) {
 	// Load routes here
 
-	authRepo := auth.NewAuthRepo(db)
-	authService := auth.NewAuthService(authRepo, jwtService)
-	authHandler := auth.NewAuthHandler(*authService)
-	AddNonAuthRoutes("POST", "/singup", authHandler.Create)
-	AddNonAuthRoutes("POST", "/login", authHandler.Login)
-	AddNonAuthRoutes("POST", "/Refresh", authHandler.Refresh)
-	AddNonAuthRoutes("POST", "/clients", authHandler.Create)
 	clientRepo := client.NewClientRepo(db)
-	clientService := client.NewClientService(clientRepo)
+	clientService := client.NewClientService(clientRepo, jwtService)
 	clientHandler := client.NewClientHandler(*clientService)
+	AddNonAuthRoutes("POST", "/singup", clientHandler.Create)
+	AddNonAuthRoutes("POST", "/login", clientHandler.Login)
+	AddNonAuthRoutes("POST", "/Refresh", clientHandler.Refresh)
+	AddNonAuthRoutes("POST", "/clients", clientHandler.Create)
 	AddAuthRoutes("GET", "/profile", clientHandler.GetProfile)
 
 	//INFO Admin routes

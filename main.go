@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/AhmedZeyad/Akalni/auth"
 	"github.com/AhmedZeyad/Akalni/config"
 	"github.com/AhmedZeyad/Akalni/database"
 	"github.com/AhmedZeyad/Akalni/logger"
@@ -19,7 +18,7 @@ func main() {
 	logger.Log.Info("server start ", "port", conf.Port)
 	// jwtService := auth.NewJWTService(conf.JWTExpire, conf.RefreshJWTExpire, conf.JWTSecret)
 	jwtService := middleware.NewJwtService(conf.JWTExpire, conf.RefreshJWTExpire, conf.JWTSecret)
-	auth.SendOTP(conf, "AhmedZeyad.AZ@proton.me", "شكرا استاذ بكر")
+	middleware.SendOTP(conf, "AhmedZeyad.AZ@proton.me", "شكرا استاذ بكر")
 	routes.LoadRoutes(conf, db, jwtService)
 	routes.InitRouter(conf, jwtService)
 	// routes.RegeserRoutes()

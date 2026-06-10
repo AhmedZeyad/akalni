@@ -1,0 +1,2 @@
+- [x] clean app old jwt  
+- [x] clean old code
