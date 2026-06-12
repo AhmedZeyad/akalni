@@ -1,0 +1,6 @@
+- [ ] plan to implement otp flow
+- [ ] POST auth /emailVerify - verify email
+- [ ] POST auth /emailResend - resend email
+- [ ] POST auth /emailVerify - send email and opt
+- [ ] POST auth /change/email/check - send otp to new email
+- [ ] PUT auth /change/email/verify - change to new email

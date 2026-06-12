@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	recaptcha "cloud.google.com/go/recaptchaenterprise/v2/apiv1"
 	recaptchapb "cloud.google.com/go/recaptchaenterprise/v2/apiv1/recaptchaenterprisepb"
@@ -158,14 +157,10 @@ func (cs *ClientService) Refresh(ctx context.Context, token string) (res Refresh
 		slog.Error("failed to verify refresh token", "error", err)
 		return res, err
 	}
-	id, err := strconv.Atoi(cliams.ID)
+
+	client, err := cs.client.GetByID(ctx, cliams.ID)
 	if err != nil {
-		slog.Error("failed to convert  to int", "id", cliams.ID, "error", err)
-		return res, err
-	}
-	client, err := cs.client.GetByID(ctx, int64(id))
-	if err != nil {
-		slog.Error("failed to get by id", "id", id, "error", err)
+		slog.Error("failed to get by id", "id", cliams.ID, "error", err)
 		return res, err
 	}
 	// Todo gen token

@@ -28,6 +28,7 @@ func (j *JWTService) genToken(claims jwt.Claims) (stringToken string, err error)
 }
 func (j *JWTService) UserGenToken(admin User) (stringToken string, err error) {
 	claims := AdminClaims{
+		ID:    admin.ID,
 		Email: admin.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        fmt.Sprint(admin.ID),
@@ -47,6 +48,7 @@ func (j *JWTService) UserGenToken(admin User) (stringToken string, err error) {
 }
 func (j *JWTService) UserGenRefreshToken(user User) (string, error) {
 	claims := AdminClaims{
+		ID:    user.ID,
 		Email: user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        fmt.Sprint(user.ID),
@@ -65,7 +67,7 @@ func (j *JWTService) UserGenRefreshToken(user User) (string, error) {
 	return token, nil
 }
 func (j *JWTService) UserTokenEvaluation(strToken string, evalType EvalClaimsType) (AdminClaims, error) {
-	claims, err := tokenEvaluation[*AdminClaims](strToken, j.JWTSecret, evalType, &AdminClaims{})
+	claims, err := tokenEvaluation(strToken, j.JWTSecret, evalType, &AdminClaims{})
 	if err != nil {
 		slog.Error("failed to evaluate admin token", "error", err)
 		return *claims, err
@@ -135,7 +137,7 @@ func tokenEvaluation[T Claims](strToken, secret string, evalType EvalClaimsType,
 		return []byte(secret), nil
 	})
 	if err != nil {
-		slog.Error("failed to parse token", "error", err)
+		slog.Error("failed to parse token", "error", err, "token", strToken)
 		return claims, err
 	}
 	c, ok := token.Claims.(T)

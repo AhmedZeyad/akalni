@@ -3,6 +3,7 @@ package routes
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/AhmedZeyad/Akalni/config"
 	"github.com/AhmedZeyad/Akalni/logger"
@@ -39,7 +40,7 @@ func InitRouter(conf *config.Config, jwtService *middleware.JWTService) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 	clientGroup := engine.Group("/api")
-	AdminGroup := engine.Group("/api")
+	AdminGroup := engine.Group("/api/admin")
 
 	clientGroup.HEAD("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -94,14 +95,14 @@ func UserJWTMiddleware(jwtService *middleware.JWTService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// get token
 		token := ctx.Request.Header.Get("Authorization")
-
+		token = strings.TrimPrefix(token, "Bearer ")
 		claims, err := jwtService.UserTokenEvaluation(token, middleware.EvalToken)
 		if err != nil {
 			slog.Error("error on verify token", "error", err)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		ctx.Set("client", claims)
+		ctx.Set("user", claims)
 		ctx.Next()
 		// TokenVerify
 		// next or abort

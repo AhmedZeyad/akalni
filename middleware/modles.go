@@ -12,6 +12,7 @@ import (
 )
 
 type AdminClaims struct {
+	ID    int64  `json:"id"`
 	Email string `json:"email"`
 	// Roles    []string `json:"roles"`
 	jwt.RegisteredClaims
