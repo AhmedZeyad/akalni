@@ -106,7 +106,7 @@ func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res Regi
 	if req.Password == "" {
 		return res, errors.New(customErrors.VALIDATION_PASSWORD_REQUIRED)
 	}
-	client, err := cs.client.GetByEmail(ctx, req.Email)
+	client, err := cs.client.GetByEmail(req.Email)
 	if err != nil {
 
 		return res, err
@@ -178,7 +178,7 @@ func (cs *ClientService) Refresh(ctx context.Context, token string) (res Refresh
 	return res, nil
 }
 func (cs *ClientService) CheckUser(ctx context.Context, email string) (string, error) {
-	user, err := cs.client.GetByEmail(ctx, email)
+	user, err := cs.client.GetByEmail(email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return USER_TYPE_NOT_REGISTERED, nil
@@ -186,7 +186,88 @@ func (cs *ClientService) CheckUser(ctx context.Context, email string) (string, e
 		return "", err
 	}
 	return user.CheckUserType(), nil
+
 }
+func (cs *ClientService) UpdateEmail(clientID int64, email string) error {
+	return cs.client.UpdateEmail(clientID, email)
+}
+func (cs *ClientService) SendEmailVerification(from, key, email string, otpLenght, otpExpire, salt int, otpType OTPType) error {
+
+	client, err := cs.client.GetByEmail(email)
+	if err != nil {
+		slog.Error("failed to get client by email", "error", err)
+		return err
+	}
+	if client.IsEmailVerified {
+		slog.Error("client is already verified", "clientID", client.ID)
+		return nil
+	}
+	otp, err := generateOtp(otpLenght)
+	if err != nil {
+		slog.Error("failed to generate otp", "error", err)
+		return err
+	}
+	hashOtp := Hash(otp, salt)
+	err = cs.client.SetOtpCode(OTPVerification{ClientID: client.ID, Code: hashOtp, Type: otpType}, otpExpire)
+	if err != nil {
+		slog.Error("failed to set otp code", "error", err)
+		return err
+	}
+	err = middleware.SendOTP(from, key, client.Email, otp)
+	if err != nil {
+		slog.Error("failed to send otp", "error", err)
+		return err
+	}
+	return nil
+}
+func (cs *ClientService) VerifyEmail(req OTPVerificationRequest, otpSalt int, otpType OTPType) error {
+
+	client, err := cs.client.GetByEmail(req.Email)
+	if err != nil {
+		slog.Error("failed to get client by email", "error", err)
+		return err
+	}
+	if client.IsEmailVerified {
+		err = fmt.Errorf("client is already verified")
+		return err
+	}
+	otp, err := cs.client.GetOtpCode(client.ID, otpType)
+	if err != nil {
+		return err
+	}
+	if !checkOtp(otp.Code, req.Code, otpSalt) {
+		err = fmt.Errorf("invalid otp")
+		slog.Error("failed to verify otp", "error", err)
+		return err
+	}
+	err = cs.client.VerifyOtpCode(otp.ID, client.ID, otpType)
+	if err != nil {
+		slog.Error("failed to set otp code", "error", err)
+		return err
+	}
+	switch otpType {
+	case OTP_TYPE_EMAIL_VERIFICATION:
+		err = cs.client.VerifyOtpCode(otp.ID, client.ID, otpType)
+		if err != nil {
+			slog.Error("failed to verify otp", "error", err)
+			return err
+		}
+		err = cs.client.UpdateClientEmailVerified(client.ID)
+		if err != nil {
+			slog.Error("failed to update client email verified", "error", err)
+			return err
+		}
+	case OTP_TYPE_EMAIL_UPDATE:
+		err = cs.UpdateEmail(client.ID, req.Email)
+		if err != nil {
+			slog.Error("failed to update email", "error", err)
+			return err
+		}
+	}
+	return nil
+}
+
+// func (cs *ClientService)
 func (cs *ClientService) CreateAssessment(projectID string, recaptchaKey string, token string, recaptchaAction string) {
 
 	// Create the reCAPTCHA client.

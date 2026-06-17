@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/AhmedZeyad/Akalni/config"
 	"gopkg.in/gomail.v2"
 )
 
@@ -19,9 +18,9 @@ func generateOTP() string {
 }
 
 // send otp
-func SendOTP(conf *config.Config, To, otpCode string) error {
+func SendOTP(from, key, To, otpCode string) error {
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", conf.OtpEmailSender)
+	msg.SetHeader("From", from)
 	msg.SetHeader("To", To)
 	msg.SetHeader("Subject", fmt.Sprintf("Akalni OTP %d", time.Now().Unix()))
 
@@ -37,8 +36,8 @@ func SendOTP(conf *config.Config, To, otpCode string) error {
 	Dialer := gomail.NewDialer(
 		"smtp.gmail.com",
 		587,
-		conf.OtpEmailSender,
-		conf.OtpAppPassword,
+		from,
+		key,
 	)
 	err = Dialer.DialAndSend(msg)
 	if err != nil {
@@ -47,26 +46,22 @@ func SendOTP(conf *config.Config, To, otpCode string) error {
 	}
 	return nil
 }
-func updateUserOTP(otpCode string) error {
 
-	return nil
-}
+// func OTPHandler(conf *config.Config, to string) error {
 
-func OTPHandler(conf *config.Config, to string) error {
-
-	// gen otp
-	otpCode := generateOTP()
-	// save on db
-	err := updateUserOTP(otpCode)
-	if err != nil {
-		slog.ErrorContext(context.TODO(), "failed to update user otp ", "Error", err)
-		return err
-	}
-	// send email
-	err = SendOTP(conf, to, otpCode)
-	if err != nil {
-		slog.ErrorContext(context.TODO(), "failed to send otp to user", "Error", err)
-		return err
-	}
-	return nil
-}
+// 	// gen otp
+// 	otpCode := generateOTP()
+// 	// save on db
+// 	err := updateUserOTP(otpCode)
+// 	if err != nil {
+// 		slog.ErrorContext(context.TODO(), "failed to update user otp ", "Error", err)
+// 		return err
+// 	}
+// 	// send email
+// 	err = SendOTP(conf, to, otpCode)
+// 	if err != nil {
+// 		slog.ErrorContext(context.TODO(), "failed to send otp to user", "Error", err)
+// 		return err
+// 	}
+// 	return nil
+// }

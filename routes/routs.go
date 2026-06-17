@@ -15,12 +15,19 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *middleware.JWTServ
 
 	clientRepo := client.NewClientRepo(db)
 	clientService := client.NewClientService(clientRepo, jwtService)
-	clientHandler := client.NewClientHandler(*clientService)
+	clientHandler := client.NewClientHandler(*clientService, *conf)
 	AddNonAuthRoutes("POST", "/singup", clientHandler.Create)
 	AddNonAuthRoutes("POST", "/login", clientHandler.Login)
 	AddNonAuthRoutes("POST", "/Refresh", clientHandler.Refresh)
 	AddNonAuthRoutes("POST", "/clients", clientHandler.Create)
 	AddAuthRoutes("GET", "/profile", clientHandler.GetProfile)
+	AddAuthRoutes("POST", "/email/verification/send", clientHandler.SendOtp)
+	AddAuthRoutes("POST", "/email/verification/resend", clientHandler.ResendOtp)
+	AddAuthRoutes("POST", "/email/verification/verify", clientHandler.VerifyOtp)
+
+	AddAuthRoutes("POST", "/email/update/send/otp", clientHandler.ResendOtpForUpdateEmail)
+	AddAuthRoutes("POST", "/email/update/resend/otp", clientHandler.ResendOtpForUpdateEmail)
+	AddAuthRoutes("POST", "/email/update/verify/otp", clientHandler.VerifyUpdateEmail)
 
 	//INFO Admin routes
 

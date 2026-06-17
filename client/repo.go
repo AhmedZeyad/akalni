@@ -16,8 +16,13 @@ type ClientRepo interface {
 	// Define methods for interacting with the API
 	// GetByID(id int64) (client Client, err error)
 	Create(context context.Context, client *Client) (err error)
-	GetByEmail(context context.Context, email string) (client Client, err error)
+	GetByEmail(email string) (client Client, err error)
 	GetByID(context context.Context, id int64) (client Client, err error)
+	SetOtpCode(otp OTPVerification, expDuration int) error
+	GetOtpCode(clientID int64, otpType OTPType) (otp OTPVerification, err error)
+	VerifyOtpCode(id, clientID int64, otpType OTPType) error
+	UpdateClientEmailVerified(clientID int64) error
+	UpdateEmail(clientID int64, email string) error
 }
 type clientRepo struct {
 	db *sqlx.DB
@@ -82,7 +87,7 @@ func (ar *clientRepo) Create(context context.Context, client *Client) (err error
 
 // DONE : CHECK IF CLIENT EXISTS
 // TODO : GET CLIENT BY EMAIL
-func (ar *clientRepo) GetByEmail(context context.Context, email string) (client Client, err error) {
+func (ar *clientRepo) GetByEmail(email string) (client Client, err error) {
 	err = ar.db.Get(&client,
 		`
 	select
@@ -101,7 +106,7 @@ func (ar *clientRepo) GetByEmail(context context.Context, email string) (client 
 		// TODO return error
 		if err == sql.ErrNoRows {
 
-			return client, errors.New(customErrors.AUTH_USER_NOT_FOUND)
+			return client, errors.New(customErrors.AUTH_NOT_FOUND + ": USER")
 		}
 		return
 	}
@@ -129,11 +134,93 @@ func (ar *clientRepo) GetByID(context context.Context, id int64) (client Client,
 		`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return client, errors.New(customErrors.AUTH_USER_NOT_FOUND)
+			return client, errors.New(customErrors.AUTH_NOT_FOUND + ": USER")
 		}
 		return
 	}
 	return
+}
+
+func (ar *clientRepo) SetOtpCode(otp OTPVerification, expDuration int) error {
+	_, err := ar.db.Exec(`
+		insert into otp_verifications
+			(
+				otp_code,
+				client_id,
+				type,
+				created_at,
+				expires_at
+			)
+		values
+			(
+				$1,
+				$2,
+				$3,
+				now(),
+				now() + interval '$3 minutes'
+			)
+		`, otp.Code,
+		otp.ClientID,
+		otp.Type,
+		expDuration)
+	return err
+}
+func (ar *clientRepo) GetOtpCode(clientID int64, otpType OTPType) (otp OTPVerification, err error) {
+	err = ar.db.Get(&otp, `
+		select
+			id,
+			otp_code,
+			client_id,
+			created_at,
+			expires_at
+		from otp_verifications
+		where client_id=$1
+		and expires_at > now()
+		and not used
+		and type = $2
+		limit 1
+		`, clientID, otpType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return otp, errors.New(customErrors.AUTH_NOT_FOUND)
+		}
+		return
+	}
+	return
+}
+func (ar *clientRepo) VerifyOtpCode(id, clientID int64, otpType OTPType) error {
+	_, err := ar.db.Exec(`
+		update otp_verifications
+		set used = true
+		where id = $1
+		and client_id = $2
+		and type = $3
+		`,
+		id,
+		clientID,
+		otpType)
+	return err
+}
+func (ar *clientRepo) UpdateClientEmailVerified(clientID int64) error {
+	_, err := ar.db.Exec(`
+		update clients
+		set
+		is_email_verified = true,
+		email_verified_at = now()
+		where id = $1
+		`,
+		clientID)
+	return err
+}
+func (ar *clientRepo) UpdateEmail(clientID int64, email string) error {
+	_, err := ar.db.Exec(`
+		update clients
+		set email = $2
+		where id = $1
+		`,
+		clientID,
+		email)
+	return err
 }
 
 // TODO : UPDATE CLIENT LOW PRIO

@@ -22,15 +22,9 @@ constraint fk_users_updated_by
 constraint clients_email_unique unique ("email")
 );
 
-create emailVerification(
-    id serial primary key ,
-    user_id int not null,
-    code varchar(255) not null,
-    created_at timestamp default now() not null,
-    expires_at timestamp not null,
-    used boolean not null default false,
-    used_at timestamp,
-    );
-
+create table app_setting(
+id serial primary key,
+app_status bool default false,
+);
 
 commit;

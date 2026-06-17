@@ -63,8 +63,37 @@ const (
 )
 
 func (client *Client) CheckUserType() string {
-	if client.EmailVerifiedAt == nil {
+	if client.EmailVerifiedAt == nil && !client.IsEmailVerified {
 		return USER_TYPE_EMAIL_NOT_VERIFIED
 	}
+	// TODO implement user blocking account
+
+	// if client.IsBlocked {
+	// 	return USER_TYPE_BLOCKED
+	// }
 	return USER_TYPE_REGISTERED
 }
+
+type OTPVerification struct {
+	ID        int64     `db:"id" json:"id"`
+	ClientID  int64     `db:"client_id" json:"client_id"`
+	Code      string    `db:"otp_code" json:"otp_code"`
+	Type      OTPType   `db:"type" json:"type"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	ExpiresAt time.Time `db:"expires_at" json:"expires_at"`
+}
+
+type OTPVerificationRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+type UpdateEmailRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+type OTPType string
+
+const (
+	OTP_TYPE_EMAIL_UPDATE       OTPType = "EMAIL_UPDATE"
+	OTP_TYPE_EMAIL_VERIFICATION OTPType = "EMAIL_VERIFICATION"
+)
