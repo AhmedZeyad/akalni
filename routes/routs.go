@@ -19,7 +19,7 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *middleware.JWTServ
 	AddNonAuthRoutes("POST", "/singup", clientHandler.Create)
 	AddNonAuthRoutes("POST", "/login", clientHandler.Login)
 	AddNonAuthRoutes("POST", "/Refresh", clientHandler.Refresh)
-	AddNonAuthRoutes("POST", "/clients", clientHandler.Create)
+	// AddNonAuthRoutes("POST", "/clients", clientHandler.Create)
 	AddAuthRoutes("GET", "/profile", clientHandler.GetProfile)
 	AddAuthRoutes("POST", "/email/verification/send", clientHandler.SendOtp)
 	AddAuthRoutes("POST", "/email/verification/resend", clientHandler.ResendOtp)

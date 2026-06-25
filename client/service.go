@@ -27,37 +27,37 @@ func NewClientService(client ClientRepo, jwtService *middleware.JWTService) *Cli
 }
 
 func (s ClientService) GetProfile(id int64) (client Client, err error) {
-	client, err = s.client.GetByID(context.Background(), id)
+	client, err = s.client.GetByID(id)
 	if err != nil {
 		return client, err
 	}
 	return client, nil
 }
-func (cs *ClientService) CreateUser(ctx context.Context, clientrequest *RegisterRequest) (res RegisterRespons, err error) {
+func (cs *ClientService) CreateUser(ctx context.Context, clientrequest *RegisterRequest) (res RegisterResponse, err error) {
 	if clientrequest.Email == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_EMAIL_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_EMAIL_REQUIRED)
 	}
 	if clientrequest.Password == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_PASSWORD_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_PASSWORD_REQUIRED)
 	}
 	if clientrequest.ConfirmPassword == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_CONFIRM_PASSWORD_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_CONFIRM_PASSWORD_REQUIRED)
 	}
 	if clientrequest.Password != clientrequest.ConfirmPassword {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_PASSWORD_MISMATCH)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_PASSWORD_MISMATCH)
 	}
 	if clientrequest.FirstName == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_FIRST_NAME_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_FIRST_NAME_REQUIRED)
 	}
 	if clientrequest.LastName == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_LAST_NAME_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_LAST_NAME_REQUIRED)
 	}
 	if clientrequest.PhoneNumber == "" {
-		return RegisterRespons{}, errors.New(customErrors.VALIDATION_PHONE_REQUIRED)
+		return RegisterResponse{}, errors.New(customErrors.VALIDATION_PHONE_REQUIRED)
 	}
 	pass, err := bcrypt.GenerateFromPassword([]byte(clientrequest.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
 	client := &Client{
 		FirstName:   clientrequest.FirstName,
@@ -69,15 +69,9 @@ func (cs *ClientService) CreateUser(ctx context.Context, clientrequest *Register
 
 	err = cs.client.Create(ctx, client)
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
-	res.Client = ClientReqponse{
-		ID:          client.ID,
-		FirstName:   client.FirstName,
-		LastName:    client.LastName,
-		PhoneNumber: client.PhoneNumber,
-		Email:       client.Email,
-	}
+	res.Client = *client.ToResponse()
 	// Todo gen token
 	res.Token, err = cs.jwtService.ClientGenToken(middleware.User{
 		ID:              client.ID,
@@ -86,7 +80,7 @@ func (cs *ClientService) CreateUser(ctx context.Context, clientrequest *Register
 		IsEmailVerified: client.IsEmailVerified,
 	})
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
 	res.RefreshToken, err = cs.jwtService.ClientGenRefreshToken(middleware.User{
 		ID:              client.ID,
@@ -94,12 +88,12 @@ func (cs *ClientService) CreateUser(ctx context.Context, clientrequest *Register
 		IsEmailVerified: client.IsEmailVerified,
 	})
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
 
 	return res, nil
 }
-func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res RegisterRespons, err error) {
+func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res RegisterResponse, err error) {
 	if req.Email == "" {
 		return res, errors.New(customErrors.VALIDATION_EMAIL_REQUIRED)
 	}
@@ -107,7 +101,7 @@ func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res Regi
 		return res, errors.New(customErrors.VALIDATION_PASSWORD_REQUIRED)
 	}
 	client, err := cs.client.GetByEmail(req.Email)
-	if err != nil {
+	if err != nil && err.Error() != customErrors.AUTH_EMAIL_NOT_VERIFIED {
 
 		return res, err
 	}
@@ -119,15 +113,7 @@ func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res Regi
 		return res, errors.New(customErrors.AUTH_PASSWORD_INCORRECT)
 	}
 
-	res.Client =
-		// res=
-		ClientReqponse{
-			ID:          client.ID,
-			FirstName:   client.FirstName,
-			LastName:    client.LastName,
-			PhoneNumber: client.PhoneNumber,
-			Email:       client.Email,
-		}
+	res.Client = *client.ToResponse()
 	// Todo gen token
 	res.Token, err = cs.jwtService.ClientGenToken(middleware.User{
 		ID:              client.ID,
@@ -136,16 +122,15 @@ func (cs *ClientService) Login(ctx context.Context, req *LoginRequest) (res Regi
 		IsEmailVerified: client.IsEmailVerified,
 	})
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
 	res.RefreshToken, err = cs.jwtService.ClientGenRefreshToken(middleware.User{
 		ID:              client.ID,
-		Name:            client.FirstName + " " + client.LastName,
 		Email:           client.Email,
 		IsEmailVerified: client.IsEmailVerified,
 	})
 	if err != nil {
-		return RegisterRespons{}, err
+		return RegisterResponse{}, err
 	}
 
 	return res, nil
@@ -158,7 +143,7 @@ func (cs *ClientService) Refresh(ctx context.Context, token string) (res Refresh
 		return res, err
 	}
 
-	client, err := cs.client.GetByID(ctx, cliams.ID)
+	client, err := cs.client.GetByID(cliams.ID)
 	if err != nil {
 		slog.Error("failed to get by id", "id", cliams.ID, "error", err)
 		return res, err
@@ -194,14 +179,11 @@ func (cs *ClientService) UpdateEmail(clientID int64, email string) error {
 func (cs *ClientService) SendEmailVerification(from, key, email string, otpLenght, otpExpire, salt int, otpType OTPType) error {
 
 	client, err := cs.client.GetByEmail(email)
-	if err != nil {
+	if err != nil && (otpType == OTP_TYPE_EMAIL_VERIFICATION && err.Error() != customErrors.AUTH_EMAIL_NOT_VERIFIED) {
 		slog.Error("failed to get client by email", "error", err)
 		return err
 	}
-	if client.IsEmailVerified {
-		slog.Error("client is already verified", "clientID", client.ID)
-		return nil
-	}
+
 	otp, err := generateOtp(otpLenght)
 	if err != nil {
 		slog.Error("failed to generate otp", "error", err)
@@ -213,26 +195,24 @@ func (cs *ClientService) SendEmailVerification(from, key, email string, otpLengh
 		slog.Error("failed to set otp code", "error", err)
 		return err
 	}
-	err = middleware.SendOTP(from, key, client.Email, otp)
+	err = middleware.SendOTP(from, key, client.Email, otp, otpType)
 	if err != nil {
 		slog.Error("failed to send otp", "error", err)
 		return err
 	}
 	return nil
 }
-func (cs *ClientService) VerifyEmail(req OTPVerificationRequest, otpSalt int, otpType OTPType) error {
+func (cs *ClientService) VerifyEmail(clientID int64, req OTPVerificationRequest, otpSalt int, otpType OTPType) error {
 
-	client, err := cs.client.GetByEmail(req.Email)
-	if err != nil {
-		slog.Error("failed to get client by email", "error", err)
+	client, err := cs.client.GetByID(clientID)
+	if err != nil && err.Error() != customErrors.AUTH_EMAIL_NOT_VERIFIED {
+		slog.Error("failed to get client by id", "error", err, "clientID", clientID)
 		return err
 	}
-	if client.IsEmailVerified {
-		err = fmt.Errorf("client is already verified")
-		return err
-	}
-	otp, err := cs.client.GetOtpCode(client.ID, otpType)
+
+	otp, err := cs.client.GetOtpCode(clientID, otpType)
 	if err != nil {
+		slog.Error("failed to get otp code", "error", err)
 		return err
 	}
 	if !checkOtp(otp.Code, req.Code, otpSalt) {
@@ -240,19 +220,19 @@ func (cs *ClientService) VerifyEmail(req OTPVerificationRequest, otpSalt int, ot
 		slog.Error("failed to verify otp", "error", err)
 		return err
 	}
-	err = cs.client.VerifyOtpCode(otp.ID, client.ID, otpType)
+	err = cs.client.VerifyOtpCode(otp.ID, clientID, otpType)
 	if err != nil {
 		slog.Error("failed to set otp code", "error", err)
 		return err
 	}
 	switch otpType {
 	case OTP_TYPE_EMAIL_VERIFICATION:
-		err = cs.client.VerifyOtpCode(otp.ID, client.ID, otpType)
+		err = cs.client.VerifyOtpCode(otp.ID, clientID, otpType)
 		if err != nil {
 			slog.Error("failed to verify otp", "error", err)
 			return err
 		}
-		err = cs.client.UpdateClientEmailVerified(client.ID)
+		err = cs.client.UpdateClientEmailVerified(clientID)
 		if err != nil {
 			slog.Error("failed to update client email verified", "error", err)
 			return err

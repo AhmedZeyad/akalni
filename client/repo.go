@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
+	"time"
 
 	customErrors "github.com/AhmedZeyad/Akalni/customErrors"
 	"github.com/jmoiron/sqlx"
@@ -17,7 +18,7 @@ type ClientRepo interface {
 	// GetByID(id int64) (client Client, err error)
 	Create(context context.Context, client *Client) (err error)
 	GetByEmail(email string) (client Client, err error)
-	GetByID(context context.Context, id int64) (client Client, err error)
+	GetByID(id int64) (client Client, err error)
 	SetOtpCode(otp OTPVerification, expDuration int) error
 	GetOtpCode(clientID int64, otpType OTPType) (otp OTPVerification, err error)
 	VerifyOtpCode(id, clientID int64, otpType OTPType) error
@@ -101,6 +102,7 @@ func (ar *clientRepo) GetByEmail(email string) (client Client, err error) {
 		password
 	from  clients
 	where email=$1
+	limit 1
 		`, email)
 	if err != nil {
 		// TODO return error
@@ -111,13 +113,13 @@ func (ar *clientRepo) GetByEmail(email string) (client Client, err error) {
 		return
 	}
 	if client.EmailVerifiedAt == nil {
-		return Client{}, errors.New(customErrors.AUTH_EMAIL_NOT_VERIFIED)
+		return client, errors.New(customErrors.AUTH_EMAIL_NOT_VERIFIED)
 	}
 	return
 }
 
 // TODO : GET CLIENT BY ID
-func (ar *clientRepo) GetByID(context context.Context, id int64) (client Client, err error) {
+func (ar *clientRepo) GetByID(id int64) (client Client, err error) {
 	err = ar.db.Get(&client,
 		`
 	select
@@ -131,6 +133,7 @@ func (ar *clientRepo) GetByID(context context.Context, id int64) (client Client,
 		password
 	from  clients
 	where id=$1
+	limit 1
 		`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -148,22 +151,29 @@ func (ar *clientRepo) SetOtpCode(otp OTPVerification, expDuration int) error {
 				otp_code,
 				client_id,
 				type,
-				created_at,
-				expires_at
+				expires_at,
+				created_at
 			)
 		values
 			(
 				$1,
 				$2,
 				$3,
-				now(),
-				now() + interval '$3 minutes'
+				$4,
+				now()
 			)
-		`, otp.Code,
+		`,
+		otp.Code,
 		otp.ClientID,
 		otp.Type,
-		expDuration)
-	return err
+		// expDuration
+		time.Now().Add(time.Duration(expDuration)*time.Minute),
+	)
+	if err != nil {
+		slog.Error("failed to set otp code", "error", err, "otp", otp)
+		return err
+	}
+	return nil
 }
 func (ar *clientRepo) GetOtpCode(clientID int64, otpType OTPType) (otp OTPVerification, err error) {
 	err = ar.db.Get(&otp, `
@@ -215,8 +225,13 @@ func (ar *clientRepo) UpdateClientEmailVerified(clientID int64) error {
 func (ar *clientRepo) UpdateEmail(clientID int64, email string) error {
 	_, err := ar.db.Exec(`
 		update clients
-		set email = $2
+		set email = $2,
+		is_email_verified = false,
+		email_verified_at = null,
+		updated_by = $1,
+		updated_at = now()
 		where id = $1
+
 		`,
 		clientID,
 		email)

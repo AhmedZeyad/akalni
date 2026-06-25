@@ -113,6 +113,7 @@ func ClientJWTMiddleware(jwtService *middleware.JWTService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// get token
 		token := ctx.Request.Header.Get("Authorization")
+		token = strings.TrimPrefix(token, "Bearer ")
 
 		claims, err := jwtService.ClientTokenEvaluation(token, middleware.EvalToken)
 		if err != nil {

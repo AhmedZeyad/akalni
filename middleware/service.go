@@ -78,7 +78,8 @@ func (j *JWTService) UserTokenEvaluation(strToken string, evalType EvalClaimsTyp
 
 func (j *JWTService) ClientGenToken(client User) (stringToken string, err error) {
 	claims := ClientClaims{
-		ClientID:        client.ID,
+
+		ID:              client.ID,
 		Name:            client.Name,
 		IsEmailVerified: client.IsEmailVerified,
 		Email:           client.Email,
@@ -99,7 +100,7 @@ func (j *JWTService) ClientGenToken(client User) (stringToken string, err error)
 }
 func (j *JWTService) ClientGenRefreshToken(client User) (string, error) {
 	claims := ClientClaims{
-		ClientID:        client.ID,
+		ID:              client.ID,
 		Name:            client.Name,
 		IsEmailVerified: client.IsEmailVerified,
 		Email:           client.Email,
@@ -145,6 +146,7 @@ func tokenEvaluation[T Claims](strToken, secret string, evalType EvalClaimsType,
 		slog.Error("invalid claims type")
 		return claims, fmt.Errorf("invalid claims type")
 	}
+	slog.Info("token evaluation", "token", strToken, "evalType", evalType, "claims", c)
 	if err := c.ClaimsEval(evalType); err != nil {
 		slog.Error("claims evaluation failed", "error", err)
 		return claims, err

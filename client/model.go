@@ -18,19 +18,20 @@ type Client struct {
 	DeletedAt       time.Time  `db:"deleted_at" json:"-"`
 	DeletedBy       int        `db:"deleted_by" json:"-"`
 }
-type ClientReqponse struct {
-	ID              int64     `db:"id" json:"id"`
-	FirstName       string    `db:"first_name" json:"first_name"`
-	LastName        string    `db:"last_name" json:"last_name"`
-	Email           string    `db:"email" json:"email"`
-	PhoneNumber     string    `db:"phone_number" json:"phone_number"`
-	IsEmailVerified bool      `db:"is_email_verified" json:"is_email_verified"`
-	EmailVerifiedAt time.Time `db:"email_verified_at" json:"email_verified_at"`
+
+type ClientResponse struct {
+	ID              int64      `json:"id"`
+	FirstName       string     `json:"first_name"`
+	LastName        string     `json:"last_name"`
+	Email           string     `json:"email"`
+	PhoneNumber     string     `json:"phone_number"`
+	IsEmailVerified bool       `json:"is_email_verified"`
+	EmailVerifiedAt *time.Time `json:"email_verified_at"`
 }
-type RegisterRespons struct {
+type RegisterResponse struct {
 	Token        string         `json:"token"`
 	RefreshToken string         `json:"refresh_token"`
-	Client       ClientReqponse `json:"client"`
+	Client       ClientResponse `json:"client"`
 }
 type RegisterRequest struct {
 	FirstName       string `json:"first_name"`
@@ -97,3 +98,15 @@ const (
 	OTP_TYPE_EMAIL_UPDATE       OTPType = "EMAIL_UPDATE"
 	OTP_TYPE_EMAIL_VERIFICATION OTPType = "EMAIL_VERIFICATION"
 )
+
+func (c *Client) ToResponse() *ClientResponse {
+	return &ClientResponse{
+		ID:              c.ID,
+		FirstName:       c.FirstName,
+		LastName:        c.LastName,
+		Email:           c.Email,
+		PhoneNumber:     c.PhoneNumber,
+		IsEmailVerified: c.IsEmailVerified,
+		EmailVerifiedAt: c.EmailVerifiedAt,
+	}
+}

@@ -82,7 +82,7 @@ const (
 )
 
 type ClientClaims struct {
-	ClientID        int64  `json:"client_id"`
+	ID              int64  `json:"client_id"`
 	Email           string `json:"email"`
 	Name            string `json:"name"`
 	IsEmailVerified bool   `json:"is_email_verified"`

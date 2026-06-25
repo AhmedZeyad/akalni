@@ -18,11 +18,11 @@ func generateOTP() string {
 }
 
 // send otp
-func SendOTP(from, key, To, otpCode string) error {
+func SendOTP(from, key, To, otpCode string, otpType string) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", from)
 	msg.SetHeader("To", To)
-	msg.SetHeader("Subject", fmt.Sprintf("Akalni OTP %d", time.Now().Unix()))
+	msg.SetHeader("Subject", fmt.Sprintf("Akalni OTP %s", otpType))
 
 	msg.Embed("assets/logo.png")
 	emailTemplet, err := os.ReadFile("assets/email.html")

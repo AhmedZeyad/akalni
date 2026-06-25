@@ -25,7 +25,7 @@ Akilni Todo List
 
 🛣️ Endpoints
 
-- [ ] GET /api/client/restaurants — list active + open restaurants
+- [x] GET /api/client/restaurants — list active + open restaurants
 - [ ] GET /api/client/restaurants/:id/menu — menu grouped by category
 - [ ] POST /api/client/orders — create order (validate items, calc total)
 - [ ] GET /api/client/orders/:id — get order (client owns it)
@@ -33,9 +33,9 @@ Akilni Todo List
 
 🔧 Admin Endpoints (bonus)
 
-- [ ] POST /api/admin/restaurants — create restaurant
+- [x] POST /api/admin/restaurants — create restaurant
 - [ ] POST /api/admin/restaurants/:id/menu-items — add menu item
-- [ ] PATCH /api/admin/restaurants/:id — update restaurant (activate/deactivate)
+- [x] PATCH /api/admin/restaurants/:id — update restaurant (activate/deactivate)
 
 🧹 Cleanup
 
