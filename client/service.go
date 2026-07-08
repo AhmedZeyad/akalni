@@ -195,7 +195,7 @@ func (cs *ClientService) SendEmailVerification(from, key, email string, otpLengh
 		slog.Error("failed to set otp code", "error", err)
 		return err
 	}
-	err = middleware.SendOTP(from, key, client.Email, otp, otpType)
+	err = middleware.SendOTP(from, key, client.Email, otp, fmt.Sprint(otpType))
 	if err != nil {
 		slog.Error("failed to send otp", "error", err)
 		return err

@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: akalni
+      POSTGRES_PASSWORD: akalni_pass
+      POSTGRES_DB: akalni
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/1_init_up.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./migrations/2_add_restaurant_user_category_product_orders_tables_up.sql:/docker-entrypoint-initdb.d/02_restaurant_tables.sql
+      - ./migrations/otp_implement.up.sql:/docker-entrypoint-initdb.d/03_otp.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U akalni"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: akalni
+      DB_PASSWORD: akalni_pass
+      DB_NAME: akalni
+      IS_DEV: "false"
+      IS_LOCAL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
