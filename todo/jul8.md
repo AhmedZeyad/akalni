@@ -1,8 +1,8 @@
 
-- [ ] create docker image to the project  
-- [ ] GET /api/client/restaurants/:id/menu — menu grouped by category
+- [x] Add .env.example
+- [x] create docker image to the project  
+- [x] GET /api/client/restaurants/:id/menu — menu grouped by category
 - [ ] POST /api/client/orders — create order (validate items, calc total)
-- [ ] GET /api/client/orders/:id — get order (client owns it)
-- [ ] POST /api/admin/restaurants/:id/menu-items — add menu item
-- [ ] Add .env.example
+- [x] GET /api/client/orders/:id — get order (client owns it)
+- [x] POST /api/admin/restaurants/:id/menu-items — add menu item
 - [ ] Add restaurant role middleware (for later)

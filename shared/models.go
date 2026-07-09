@@ -29,3 +29,8 @@ type AppError struct {
 }
 
 var Conf *config.Config
+
+type PaginationResponse struct {
+	Result any `json:"result"`
+	Count  int `json:"count"`
+}

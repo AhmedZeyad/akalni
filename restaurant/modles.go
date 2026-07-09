@@ -7,12 +7,13 @@ import (
 )
 
 type Restaurant struct {
-	ID      int64   `db:"id"`
-	Name    string  `db:"name"`
-	Status  bool    `db:"status"`
-	Lon     float64 `db:"lon"`
-	Lat     float64 `db:"lat"`
-	Address string  `db:"address"`
+	ID       int64     `db:"id"`
+	Name     string    `db:"name"`
+	Status   bool      `db:"status"`
+	Lon      float64   `db:"lon"`
+	Lat      float64   `db:"lat"`
+	Address  string    `db:"address"`
+	Products []Product `db:"products"`
 }
 
 type RestaurantRequest struct {
@@ -26,14 +27,12 @@ type RestaurantRequest struct {
 
 type SearchRequest struct {
 	ID     int64  `json:"id" form:"id"`
+	Status bool   `json:"status" form:"status"`
 	Term   string `json:"term" form:"term"`
 	Limit  int    `json:"limit" form:"limit"`
 	Offset int    `json:"offset" form:"offset"`
 }
-type PaginationResponse struct {
-	Result any `json:"result"`
-	Count  int `json:"count"`
-}
+
 type RestaurantResponse struct {
 	ID      int64   `json:"id"`
 	Name    string  `json:"name"`

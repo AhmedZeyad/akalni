@@ -29,7 +29,7 @@ Akilni Todo List
 - [ ] GET /api/client/restaurants/:id/menu — menu grouped by category
 - [ ] POST /api/client/orders — create order (validate items, calc total)
 - [ ] GET /api/client/orders/:id — get order (client owns it)
-- [ ] PATCH /api/admin/orders/:id/status — update order status
+- [x] PATCH /api/admin/orders/:id/status — update order status
 
 🔧 Admin Endpoints (bonus)
 
@@ -39,6 +39,6 @@ Akilni Todo List
 
 🧹 Cleanup
 
-- [ ] Remove .env / hardcoded secrets
-- [ ] Add .env.example
+- [x] Remove .env / hardcoded secrets
+- [x] Add .env.example
 - [ ] Add README.md
