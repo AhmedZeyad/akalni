@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/AhmedZeyad/Akalni/customErrors"
+	"github.com/AhmedZeyad/Akalni/shared"
 	"github.com/AhmedZeyad/Akalni/utils"
 )
 
@@ -55,24 +56,29 @@ func (s *restaurantService) UpdateRestaurantStatus(req RestaurantRequest, update
 
 	return nil
 }
-func (s *restaurantService) SearchRestaurant(req SearchRequest) (PaginationResponse, error) {
+func (s *restaurantService) SearchRestaurant(req SearchRequest) (Restaurant, error) {
 
-	restaurants, err := s.repo.Search(req.Term, req.Limit, req.Offset)
+	restaurants, err := s.repo.GetByID(req.ID)
 	if err != nil {
 
 		slog.Error("failed to update restaurant", "error", err)
-		return PaginationResponse{}, err
+		return Restaurant{}, err
 	}
 
+	restaurants.Products, err = s.repo.GetResProducts(int(restaurants.ID))
+	if err != nil {
+		slog.Error("failed to get products", "error", err)
+		return Restaurant{}, err
+	}
 	return restaurants, nil
 }
-func (s *restaurantService) GetActiveRestaurant(req SearchRequest) (PaginationResponse, error) {
+func (s *restaurantService) GetActiveRestaurant(req SearchRequest) (shared.PaginationResponse, error) {
 
-	restaurants, err := s.repo.GetActive(req.Limit, req.Offset)
+	restaurants, err := s.repo.Search(req.Term, req.Limit, req.Offset, req.Status)
 	if err != nil {
 
 		slog.Error("failed to update restaurant", "error", err)
-		return PaginationResponse{}, err
+		return shared.PaginationResponse{}, err
 	}
 
 	return restaurants, nil

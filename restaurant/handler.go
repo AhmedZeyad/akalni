@@ -110,7 +110,7 @@ func (h *RestaurantHandler) GetRestaurantById(ctx *gin.Context) {
 		return
 	}
 
-	res, err := h.service.repo.GetByID(req.ID)
+	res, err := h.service.SearchRestaurant(req)
 	if err != nil {
 		slog.Error("failed to get restaurant by id", "error", err)
 		appError.Error = err
@@ -129,7 +129,7 @@ func (h *RestaurantHandler) GetActiveRestaurant(ctx *gin.Context) {
 		shared.Respond(ctx, nil, &appError)
 		return
 	}
-	res, err := h.service.repo.GetActive(req.Limit, req.Offset)
+	res, err := h.service.GetActiveRestaurant(req)
 	if err != nil {
 		slog.Error("failed to get active restaurant", "error", err)
 		appError.Error = err
