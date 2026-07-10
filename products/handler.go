@@ -9,11 +9,11 @@ import (
 )
 
 type productHandler struct {
-	*productsService
+	*ProductsService
 }
 
-func NewProductHandler(ps *productsService) *productHandler {
-	return &productHandler{productsService: ps}
+func NewProductHandler(ps *ProductsService) *productHandler {
+	return &productHandler{ProductsService: ps}
 }
 
 func (h *productHandler) GetProduct(ctx *gin.Context) {
@@ -27,7 +27,7 @@ func (h *productHandler) GetProduct(ctx *gin.Context) {
 		shared.Respond(ctx, nil, &appErr)
 		return
 	}
-	product, count, err := h.productsService.Search(req)
+	product, count, err := h.ProductsService.Search(req)
 	if err != nil {
 		appErr.Error = err
 		slog.Error("failed to get product", "error", err)
@@ -49,7 +49,7 @@ func (h *productHandler) AddProduct(ctx *gin.Context) {
 		return
 	}
 	createdBy := ctx.MustGet("user").(middleware.AdminClaims).ID
-	err := h.productsService.Create(int(createdBy), req)
+	err := h.ProductsService.Create(int(createdBy), req)
 	if err != nil {
 		appErr.Error = err
 		slog.Error("failed to add product", "error", err)
@@ -71,7 +71,7 @@ func (h *productHandler) UpdateProduct(ctx *gin.Context) {
 		return
 	}
 	updatedBy := ctx.MustGet("user").(middleware.AdminClaims).ID
-	err := h.productsService.Update(int(updatedBy), req)
+	err := h.ProductsService.Update(int(updatedBy), req)
 	if err != nil {
 		appErr.Error = err
 		slog.Error("failed to update product", "error", err)
@@ -95,7 +95,7 @@ func (h *productHandler) UpdateProductStatus(ctx *gin.Context) {
 	updatedBy := ctx.MustGet("user").(middleware.AdminClaims).ID
 	slog.Error("updating product status", "id", req.ID, "active", req.Active)
 
-	err := h.productsService.UpdateStatus(int(updatedBy), req)
+	err := h.ProductsService.UpdateStatus(int(updatedBy), req)
 	if err != nil {
 		appErr.Error = err
 		slog.Error("failed to update product status", "error", err)
@@ -117,7 +117,7 @@ func (h *productHandler) DeleteProduct(ctx *gin.Context) {
 		return
 	}
 	deletedBy := ctx.MustGet("user").(middleware.AdminClaims).ID
-	err := h.productsService.Delete(req.ID, int(deletedBy))
+	err := h.ProductsService.Delete(req.ID, int(deletedBy))
 	if err != nil {
 		appErr.Error = err
 		slog.Error("failed to delete product", "error", err)

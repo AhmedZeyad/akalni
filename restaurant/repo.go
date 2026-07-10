@@ -23,7 +23,7 @@ type RestaurantRepo interface {
 	UpdateStatus(restaurant Restaurant, updatedBy int) error
 	Search(query string, limit, offset int, status bool) (shared.PaginationResponse, error)
 	GetResProducts(ids ...int) ([]Product, error)
-
+	GetProductsByID(restID int, ids []int) ([]Product, error)
 	GetByID(id int64) (Restaurant, error)
 	// GetActive(limit, offset int) (shared.PaginationResponse, error)
 }
@@ -186,6 +186,25 @@ func (r *restaurantRepo) GetProducts(id int) ([]Product, error) {
 		group by c.id, p.id
 		order by id desc
 	`, id)
+	if err != nil {
+		slog.Error("failed to get products", "error", err)
+		return nil, err
+	}
+	return products, nil
+}
+
+func (r *restaurantRepo) GetProductsByID(restID int, ids []int) ([]Product, error) {
+	var products []Product
+	err := r.db.Select(&products, `
+		SELECT
+				p.id,
+				price
+		FROM products p
+		WHERE rest_id = $1
+		and p.id = any($2)
+		and p.deleted_at is null
+		and p.active
+	`, restID, pq.Array(ids))
 	if err != nil {
 		slog.Error("failed to get products", "error", err)
 		return nil, err

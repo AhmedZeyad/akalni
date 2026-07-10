@@ -427,6 +427,9 @@ func (ch *ClientHandler) VerifyUpdateEmail(c *gin.Context) {
 	shared.Respond(c, nil, nil)
 }
 
+func (ch *ClientHandler) Test(i int) gin.HandlerFunc {
+	return nil
+}
 func generateOtp(length int) (string, error) {
 	// const digits = "0123456789"
 	// otp := make([]byte, length)

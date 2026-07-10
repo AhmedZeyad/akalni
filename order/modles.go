@@ -45,3 +45,37 @@ type OrderRequest struct {
 	ID        int64  `form:"id" json:"id"`
 	NewStatus string `json:"new_status"`
 }
+
+type ProductRequest struct {
+	ID       int `json:"id"`
+	Quantity int `json:"qty"`
+}
+type ProductData struct {
+	ID    int64
+	Price float64
+}
+type RestaurantData struct {
+	ID   int64  `db:"id"`
+	Name string `db:"name"`
+}
+
+type CreateOrderRequest struct {
+	ClientID     int64            `json:"-"`
+	RestaurantID int              `json:"rest_id"`
+	Products     []ProductRequest `json:"products"`
+	TotalPrice   float64          `json:"-"`
+	Subtotal     float64          `json:"-"`
+}
+
+type OrderDataProvider interface {
+	GetRestaurantByID(restID int, productsIDS []int) (Restaurant, error)
+}
+type Restaurant struct {
+	ID       int64
+	Name     string
+	Status   bool
+	Lon      float64
+	Lat      float64
+	Address  string
+	Products []ProductData
+}

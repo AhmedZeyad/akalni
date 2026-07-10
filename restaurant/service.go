@@ -9,15 +9,15 @@ import (
 	"github.com/AhmedZeyad/Akalni/utils"
 )
 
-type restaurantService struct {
+type RestaurantService struct {
 	repo RestaurantRepo
 }
 
-func NewRestaurantService(repo RestaurantRepo) restaurantService {
-	return restaurantService{repo: repo}
+func NewRestaurantService(repo RestaurantRepo) RestaurantService {
+	return RestaurantService{repo: repo}
 }
 
-func (s *restaurantService) CreateRestaurant(req RestaurantRequest, createdBy int) error {
+func (s *RestaurantService) CreateRestaurant(req RestaurantRequest, createdBy int) error {
 	err := req.Validate()
 	if err != nil {
 		slog.Error("validation failed", "error", err)
@@ -31,7 +31,7 @@ func (s *restaurantService) CreateRestaurant(req RestaurantRequest, createdBy in
 	return nil
 }
 
-func (s *restaurantService) UpdateRestaurant(req RestaurantRequest, updatedBy int) error {
+func (s *RestaurantService) UpdateRestaurant(req RestaurantRequest, updatedBy int) error {
 	err := req.Validate()
 	if err != nil {
 		slog.Error("validation failed", "error", err)
@@ -44,7 +44,7 @@ func (s *restaurantService) UpdateRestaurant(req RestaurantRequest, updatedBy in
 
 	return nil
 }
-func (s *restaurantService) UpdateRestaurantStatus(req RestaurantRequest, updatedBy int) error {
+func (s *RestaurantService) UpdateRestaurantStatus(req RestaurantRequest, updatedBy int) error {
 	if utils.IsEmpty(req.ID) {
 		slog.Error("id is required")
 		return errors.New(customErrors.VALIDATION_MISSING_REQUIRED_FIELD + ": id")
@@ -56,7 +56,7 @@ func (s *restaurantService) UpdateRestaurantStatus(req RestaurantRequest, update
 
 	return nil
 }
-func (s *restaurantService) SearchRestaurant(req SearchRequest) (Restaurant, error) {
+func (s *RestaurantService) SearchRestaurant(req SearchRequest) (Restaurant, error) {
 
 	restaurants, err := s.repo.GetByID(req.ID)
 	if err != nil {
@@ -72,7 +72,7 @@ func (s *restaurantService) SearchRestaurant(req SearchRequest) (Restaurant, err
 	}
 	return restaurants, nil
 }
-func (s *restaurantService) GetActiveRestaurant(req SearchRequest) (shared.PaginationResponse, error) {
+func (s *RestaurantService) GetActiveRestaurant(req SearchRequest) (shared.PaginationResponse, error) {
 
 	restaurants, err := s.repo.Search(req.Term, req.Limit, req.Offset, req.Status)
 	if err != nil {
@@ -81,5 +81,21 @@ func (s *restaurantService) GetActiveRestaurant(req SearchRequest) (shared.Pagin
 		return shared.PaginationResponse{}, err
 	}
 
+	return restaurants, nil
+}
+func (s *RestaurantService) GetRestaurantByID(resId int, productsIDs []int) (Restaurant, error) {
+
+	restaurants, err := s.repo.GetByID(int64(resId))
+	if err != nil {
+
+		slog.Error("failed to update restaurant", "error", err)
+		return Restaurant{}, err
+	}
+
+	restaurants.Products, err = s.repo.GetProductsByID(resId, productsIDs)
+	if err != nil {
+		slog.Error("failed to get products", "error", err)
+		return Restaurant{}, err
+	}
 	return restaurants, nil
 }
