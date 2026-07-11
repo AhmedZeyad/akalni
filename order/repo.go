@@ -10,6 +10,7 @@ type OrderRepo interface {
 	GetOrderById(id int64) (Order, error)
 	UpdateOrderStatus(id int64, status string) error
 	GetOrderDetailsByOrderId(id int64) ([]OrdersDetails, error)
+	Create(order CreateOrderRequest) (int64, error)
 }
 
 type orderRepo struct {
@@ -73,4 +74,35 @@ func (r *orderRepo) UpdateOrderStatus(id int64, status string) error {
 		return err
 	}
 	return nil
+}
+func (r *orderRepo) Create(order CreateOrderRequest) (int64, error) {
+	var id int64
+	err := r.db.Get(&id, `
+		INSERT INTO orders
+			(
+			client_id,
+			rest_id,
+			total_price,
+			sub_total_price,
+			last_status,
+			created_by,
+			created_at
+			)
+		VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			'pending',
+			$1,
+			now()
+		)
+		RETURNING id
+			`, order.ClientID, order.RestaurantID, order.TotalPrice, order.Subtotal)
+	if err != nil {
+		slog.Error("failed to create order", "error", err)
+		return 0, err
+	}
+
+	return id, nil
 }

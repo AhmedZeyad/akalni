@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"log/slog"
+
 	"github.com/AhmedZeyad/Akalni/categories"
 	"github.com/AhmedZeyad/Akalni/client"
 	"github.com/AhmedZeyad/Akalni/config"
@@ -86,4 +88,42 @@ func LoadRoutes(conf *config.Config, db *sqlx.DB, jwtService *middleware.JWTServ
 	AddAdminRoutes("DELETE", "products", productHandler.DeleteProduct)
 	AddAdminRoutes("PUT", "products/status", productHandler.UpdateProductStatus)
 
+	// func(a *OrderDataAdapter) GetRestaurantByID(restID int64) (Restaurant, error) {
+	// }
+	AddAuthRoutes("POST", "orders", orderHandler.CreateOrder(&OrderDataAdapter{&restaurantService}))
+}
+
+type OrderDataAdapter struct {
+	rs *restaurant.RestaurantService
+}
+
+func (a *OrderDataAdapter) GetRestaurantByID(restID int, productsIDS []int) (order.Restaurant, error) {
+
+	rest, err := a.rs.GetRestaurantByID(restID, productsIDS)
+	if err != nil {
+		slog.Error("failed to get restaurant by id", "err", err)
+		return order.Restaurant{}, err
+	}
+	return toOrderRestaurant(rest), nil
+}
+func toOrderRestaurant(rest restaurant.Restaurant) order.Restaurant {
+	return order.Restaurant{
+		ID:       rest.ID,
+		Name:     rest.Name,
+		Status:   rest.Status,
+		Lon:      rest.Lon,
+		Lat:      rest.Lat,
+		Address:  rest.Address,
+		Products: toOrderProducts(rest.Products),
+	}
+}
+func toOrderProducts(products []restaurant.Product) []order.ProductData {
+	var result []order.ProductData
+	for _, product := range products {
+		result = append(result, order.ProductData{
+			ID:    product.ID,
+			Price: product.Price,
+		})
+	}
+	return result
 }

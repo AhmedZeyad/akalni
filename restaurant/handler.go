@@ -9,11 +9,11 @@ import (
 )
 
 type RestaurantHandler struct {
-	service restaurantService
+	service RestaurantService
 	// jwt     *jwt.Token
 }
 
-func NewRestaurantHandler(service restaurantService) *RestaurantHandler {
+func NewRestaurantHandler(service RestaurantService) *RestaurantHandler {
 	return &RestaurantHandler{
 		service: service,
 		// jwt:     jwt,
